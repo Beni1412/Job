@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Career Advisor — Your Intelligent Career Guide</title>
+  <meta name="description" content="Upload your CV and get AI-powered career recommendations, job matches, and personalized course suggestions based on real LinkedIn job market data." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ─── PARTICLE BACKGROUND ────────────────────────────────── -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- ─── HEADER ───────────────────────────────────────────────── -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2L26 8v12L14 26 2 20V8L14 2z" fill="url(#logo-grad)" stroke="rgba(139,92,246,0.4)" stroke-width="0.5"/>
+            <circle cx="14" cy="14" r="5" fill="rgba(255,255,255,0.9)"/>
+            <defs>
+              <linearGradient id="logo-grad" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#06b6d4"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">CareerAI</span>
+      </div>
+      <nav class="nav">
+        <a href="#upload" class="nav-link" id="nav-upload">Analyze CV</a>
+        <a href="#results" class="nav-link hidden" id="nav-results">Results</a>
+        <div class="nav-badge">
+          <span class="badge-dot"></span>
+          <span id="nav-stats-text">Loading data...</span>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ─── HERO / UPLOAD SECTION ────────────────────────────────── -->
+  <section class="hero" id="upload">
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-badge">
+          <span class="eyebrow-dot"></span>
+          AI-Powered · Real Market Data
+        </span>
+      </div>
+      <h1 class="hero-title">
+        Discover Your
+        <span class="gradient-text">Perfect Career</span>
+        Path
+      </h1>
+      <p class="hero-subtitle">
+        Upload your CV and our AI analyzes your skills against thousands of real job postings
+        from LinkedIn, recommending personalized career paths and courses to bridge any gaps.
+      </p>
+
+      <!-- Stats Bar -->
+      <div class="stats-bar" id="stats-bar">
+        <div class="stat-item">
+          <span class="stat-value" id="stat-jobs">—</span>
+          <span class="stat-label">Job Listings</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value" id="stat-courses">—</span>
+          <span class="stat-label">Courses</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value" id="stat-skills">—</span>
+          <span class="stat-label">Skills Tracked</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value" id="stat-cats">—</span>
+          <span class="stat-label">Career Paths</span>
+        </div>
+      </div>
+
+      <!-- Upload Card -->
+      <div class="upload-card" id="upload-card">
+        <div class="upload-tabs">
+          <button class="tab-btn active" id="tab-file" onclick="switchTab('file')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+            Upload PDF
+          </button>
+          <button class="tab-btn" id="tab-text" onclick="switchTab('text')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+            Paste Text
+          </button>
+        </div>
+
+        <!-- File Upload Tab -->
+        <div class="tab-panel" id="panel-file">
+          <div class="dropzone" id="dropzone"
+               ondragover="handleDragOver(event)"
+               ondragleave="handleDragLeave(event)"
+               ondrop="handleDrop(event)"
+               onclick="document.getElementById('file-input').click()">
+            <div class="dropzone-inner">
+              <div class="dropzone-icon" id="dropzone-icon">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="22" fill="rgba(139,92,246,0.1)" stroke="rgba(139,92,246,0.3)" stroke-width="1"/>
+                  <path d="M24 32V20M24 20l-5 5M24 20l5 5" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="14" y="33" width="20" height="3" rx="1.5" fill="rgba(139,92,246,0.4)"/>
+                </svg>
+              </div>
+              <div class="dropzone-text" id="dropzone-text">
+                <p class="dropzone-main">Drop your CV here</p>
+                <p class="dropzone-sub">or click to browse · PDF, TXT supported</p>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="file-input" accept=".pdf,.txt,.doc" hidden onchange="handleFileSelect(event)" />
+        </div>
+
+        <!-- Text Input Tab -->
+        <div class="tab-panel hidden" id="panel-text">
+          <div class="textarea-wrapper">
+            <textarea
+              id="cv-text-input"
+              placeholder="Paste your CV text here...&#10;&#10;Example: Skills: Python, Machine Learning, SQL...&#10;Experience: 3 years as Data Analyst at...&#10;Education: B.Sc Computer Science..."
+              rows="10"
+            ></textarea>
+            <div class="textarea-footer">
+              <span id="char-count" class="char-count">0 characters</span>
+              <button class="btn-load-sample" onclick="loadSampleCV()">Load Sample CV</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analyze Button -->
+        <button class="btn-analyze" id="btn-analyze" onclick="analyzeCV()">
+          <span class="btn-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
+          <span class="btn-text">Analyze My Career</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero decoration -->
+    <div class="hero-decoration">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+  </section>
+
+  <!-- ─── LOADING STATE ────────────────────────────────────────── -->
+  <section class="loading-section hidden" id="loading-section">
+    <div class="loading-content">
+      <div class="loading-orb">
+        <div class="loading-ring ring-1"></div>
+        <div class="loading-ring ring-2"></div>
+        <div class="loading-ring ring-3"></div>
+        <div class="loading-center">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+      </div>
+      <div class="loading-steps">
+        <div class="loading-step active" id="step-1">
+          <span class="step-icon">📄</span>
+          <span class="step-text">Extracting CV text...</span>
+        </div>
+        <div class="loading-step" id="step-2">
+          <span class="step-icon">🧠</span>
+          <span class="step-text">Analyzing skills with NLP...</span>
+        </div>
+        <div class="loading-step" id="step-3">
+          <span class="step-icon">💼</span>
+          <span class="step-text">Matching job opportunities...</span>
+        </div>
+        <div class="loading-step" id="step-4">
+          <span class="step-icon">📚</span>
+          <span class="step-text">Finding recommended courses...</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── RESULTS SECTION ─────────────────────────────────────── -->
+  <section class="results-section hidden" id="results">
+
+    <!-- Results Header -->
+    <div class="results-header">
+      <div class="results-header-inner">
+        <button class="btn-back" onclick="resetToUpload()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/>
+          </svg>
+          Analyze Another CV
+        </button>
+        <div class="results-title-block">
+          <h2 class="results-title">Your Career Analysis</h2>
+          <p class="results-subtitle">Based on your CV, here's what we found:</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Career Profile Card -->
+    <div class="container">
+      <div class="profile-card" id="profile-card">
+        <div class="profile-left">
+          <div class="profile-avatar" id="profile-avatar">
+            <span id="profile-avatar-letter">?</span>
+          </div>
+          <div class="profile-info">
+            <div class="profile-category-badge" id="profile-category">Loading...</div>
+            <h3 class="profile-name" id="profile-career-title">Analyzing...</h3>
+            <div class="profile-confidence">
+              <span>Match Confidence</span>
+              <div class="confidence-bar">
+                <div class="confidence-fill" id="confidence-fill"></div>
+              </div>
+              <span id="confidence-pct">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="profile-right">
+          <div class="profile-stat">
+            <span class="pstat-value" id="pstat-skills">0</span>
+            <span class="pstat-label">Skills Found</span>
+          </div>
+          <div class="profile-stat">
+            <span class="pstat-value" id="pstat-jobs">0</span>
+            <span class="pstat-label">Job Matches</span>
+          </div>
+          <div class="profile-stat">
+            <span class="pstat-value" id="pstat-courses">0</span>
+            <span class="pstat-label">Courses</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skill Analysis -->
+      <div class="section-block">
+        <div class="section-header">
+          <div class="section-icon">🧠</div>
+          <div>
+            <h3 class="section-title">Skills Analysis</h3>
+            <p class="section-desc">Skills detected from your CV</p>
+          </div>
+        </div>
+        <div class="skills-panels">
+          <div class="skill-panel">
+            <h4 class="skill-panel-title">
+              <span class="sp-dot tech"></span> Technical Skills
+            </h4>
+            <div class="skill-tags" id="tech-skills-tags"></div>
+          </div>
+          <div class="skill-panel">
+            <h4 class="skill-panel-title">
+              <span class="sp-dot tools"></span> Tools & Platforms
+            </h4>
+            <div class="skill-tags" id="tool-skills-tags"></div>
+          </div>
+          <div class="skill-panel">
+            <h4 class="skill-panel-title">
+              <span class="sp-dot soft"></span> Soft Skills
+            </h4>
+            <div class="skill-tags" id="soft-skills-tags"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skill Gap Alert -->
+      <div class="gap-card" id="gap-card">
+        <div class="gap-header">
+          <span class="gap-icon">⚡</span>
+          <div>
+            <h4 class="gap-title">Skills in High Demand (You're Missing)</h4>
+            <p class="gap-desc">Learn these to dramatically boost your job match rate</p>
+          </div>
+        </div>
+        <div class="gap-skills" id="gap-skills"></div>
+      </div>
+
+      <!-- Job Recommendations -->
+      <div class="section-block" id="jobs-section">
+        <div class="section-header">
+          <div class="section-icon">💼</div>
+          <div>
+            <h3 class="section-title">Recommended Jobs</h3>
+            <p class="section-desc">Ranked by your skill match percentage</p>
+          </div>
+        </div>
+        <div class="jobs-grid" id="jobs-grid"></div>
+      </div>
+
+      <!-- Course Recommendations -->
+      <div class="section-block" id="courses-section">
+        <div class="section-header">
+          <div class="section-icon">📚</div>
+          <div>
+            <h3 class="section-title">Recommended Courses</h3>
+            <p class="section-desc">Bridge your skill gaps with these top-rated courses</p>
+          </div>
+        </div>
+        <div class="courses-grid" id="courses-grid"></div>
+      </div>
+
+    </div><!-- /container -->
+  </section>
+
+  <!-- ─── JOB DETAIL MODAL ─────────────────────────────────────── -->
+  <div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal()">
+    <div class="modal" id="job-modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ─── TOAST ───────────────────────────────────────────────── -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
