@@ -177,67 +177,128 @@ class CVAnalyzer:
                 found_skills.add(word)
         
         return sorted(found_skills)
-    
+
     def detect_career_category(self, cv_text: str, extracted_skills: List[str]) -> Dict:
         """Detect most likely career category based on CV content"""
         text_lower = cv_text.lower()
         skills_text = " ".join(s.lower() for s in extracted_skills)
         combined = text_lower + " " + skills_text
-        
-        # Category keyword signatures
+
+        # Category keyword signatures — more keywords = more precise detection
         CATEGORY_KEYWORDS = {
-            "Data Science": ["machine learning", "deep learning", "data science", "tensorflow", 
-                            "pytorch", "pandas", "numpy", "scikit", "jupyter", "statistics",
-                            "neural network", "nlp", "computer vision"],
-            "Software Engineering": ["software engineer", "developer", "backend", "frontend",
-                                    "fullstack", "api", "microservices", "git", "agile",
-                                    "object-oriented", "algorithm", "system design"],
-            "Data Engineering": ["data pipeline", "etl", "spark", "hadoop", "kafka", "airflow",
-                                 "data warehouse", "dbt", "bigquery", "snowflake"],
-            "Product Management": ["product manager", "product roadmap", "stakeholder", "kpi",
-                                  "user story", "sprint", "backlog", "product strategy"],
-            "UX/UI Design": ["ux", "ui", "user experience", "figma", "sketch", "wireframe",
-                            "prototype", "usability", "design thinking", "adobe xd"],
-            "Cybersecurity": ["security", "penetration testing", "ethical hacking", "firewall",
-                             "vulnerability", "siem", "encryption", "network security"],
-            "DevOps/Cloud": ["devops", "ci/cd", "jenkins", "docker", "kubernetes", "aws",
-                            "azure", "gcp", "terraform", "ansible", "infrastructure"],
-            "Marketing": ["marketing", "seo", "sem", "social media", "content", "campaign",
-                         "google analytics", "brand", "digital marketing"],
-            "Finance/Accounting": ["financial", "accounting", "cpa", "balance sheet", "audit",
-                                  "tax", "budgeting", "excel", "financial analysis", "gaap"],
-            "HR/Recruitment": ["human resources", "recruitment", "talent", "onboarding",
-                              "payroll", "performance management", "hr", "hris"],
-            "Sales/Business Dev": ["sales", "business development", "b2b", "b2c", "crm",
-                                  "lead generation", "revenue", "client acquisition"],
-            "Healthcare": ["healthcare", "medical", "clinical", "patient", "nursing",
-                          "hospital", "ehr", "pharmaceuticals", "diagnosis"],
-            "Education/Teaching": ["teaching", "curriculum", "lesson plan", "classroom",
-                                  "education", "instructor", "pedagogy", "students"],
-            "Legal": ["law", "legal", "attorney", "litigation", "compliance", "contract",
-                     "counsel", "paralegal", "regulatory"],
-            "Mobile Development": ["android", "ios", "flutter", "react native", "swift",
-                                  "kotlin", "mobile app", "xcode"],
+            "Data Science": [
+                "machine learning", "deep learning", "data science", "tensorflow",
+                "pytorch", "pandas", "numpy", "scikit", "scikit-learn", "jupyter",
+                "statistics", "neural network", "nlp", "computer vision",
+                "model training", "feature engineering", "data scientist",
+                "gradient boosting", "xgboost", "lightgbm", "classification",
+                "regression", "clustering", "random forest", "bert", "transformer",
+            ],
+            "Software Engineering": [
+                "software engineer", "backend developer", "frontend developer",
+                "full stack", "fullstack", "api development", "microservices",
+                "object-oriented", "algorithm", "system design", "rest api",
+                "software development", "agile", "code review", "unit testing",
+                "ci/cd", "version control", "software architecture",
+            ],
+            "Data Engineering": [
+                "data pipeline", "etl", "spark", "apache spark", "hadoop", "kafka",
+                "airflow", "data warehouse", "dbt", "bigquery", "snowflake",
+                "data engineer", "data ingestion", "batch processing",
+                "stream processing", "data lake", "redshift",
+            ],
+            "DevOps/Cloud": [
+                "devops", "ci/cd", "jenkins", "docker", "kubernetes",
+                "infrastructure as code", "terraform", "ansible", "cloud infrastructure",
+                "aws", "azure", "gcp", "site reliability", "sre", "monitoring",
+                "deployment pipeline", "containerization", "helm",
+            ],
+            "Mobile Development": [
+                "android", "ios", "flutter", "react native", "swift",
+                "kotlin", "mobile app", "xcode", "mobile development",
+                "app store", "play store", "mobile ui",
+            ],
+            "UX/UI Design": [
+                "ux", "ui design", "user experience", "figma", "sketch",
+                "wireframe", "prototype", "usability", "design thinking",
+                "adobe xd", "user research", "interaction design",
+                "visual design", "design system",
+            ],
+            "Cybersecurity": [
+                "penetration testing", "ethical hacking", "firewall", "vulnerability",
+                "siem", "encryption", "network security", "cybersecurity",
+                "information security", "threat analysis", "incident response",
+                "soc analyst", "malware analysis",
+            ],
+            "Product Management": [
+                "product manager", "product roadmap", "stakeholder", "kpi",
+                "user story", "backlog", "product strategy", "product owner",
+                "go-to-market", "okr", "product discovery",
+            ],
+            "Marketing": [
+                "digital marketing", "seo", "sem", "social media marketing",
+                "content marketing", "google analytics", "brand management",
+                "email marketing", "paid ads", "marketing strategy",
+                "conversion rate", "copywriting",
+            ],
+            "Finance/Accounting": [
+                "financial analysis", "accounting", "cpa", "balance sheet", "audit",
+                "tax", "budgeting", "financial modeling", "gaap", "ifrs",
+                "investment analysis", "valuation", "financial reporting",
+            ],
+            "HR/Recruitment": [
+                "human resources", "recruitment", "talent acquisition", "onboarding",
+                "payroll", "performance management", "employee relations", "hris",
+                "talent management", "compensation", "hr business partner",
+            ],
+            "Sales/Business Dev": [
+                "sales", "business development", "b2b", "crm",
+                "lead generation", "revenue growth", "account management",
+                "salesforce", "pipeline management", "negotiation",
+            ],
+            "Healthcare": [
+                "clinical", "patient care", "nursing", "hospital", "ehr",
+                "pharmaceuticals", "medical device", "clinical trials",
+                "healthcare management", "telemedicine",
+            ],
         }
-        
+
         scores = {}
         for cat, keywords in CATEGORY_KEYWORDS.items():
             score = sum(1 for kw in keywords if kw in combined)
-            if score > 0:
+            # Require at least 2 keywords to match before assigning a category
+            # (prevents single keyword false positives like 'aws' → DevOps)
+            if score >= 2:
                 scores[cat] = score
-        
+
+        if not scores:
+            # Try with 1 keyword as fallback
+            for cat, keywords in CATEGORY_KEYWORDS.items():
+                score = sum(1 for kw in keywords if kw in combined)
+                if score >= 1:
+                    scores[cat] = score
+
         if not scores:
             return {"category": "General Professional", "confidence": 0.3, "all_scores": {}}
-        
+
         best_cat = max(scores, key=scores.get)
         best_score = scores[best_cat]
         max_possible = len(CATEGORY_KEYWORDS[best_cat])
-        confidence = min(best_score / max(max_possible * 0.4, 1), 1.0)
-        
+
+        # Fixed formula: was hitting 100% at 40% match
+        # Now needs 70% keyword coverage to reach 100% confidence
+        confidence = min(best_score / max(max_possible * 0.7, 1), 1.0)
+
+        # Normalize scores for display (percentage of max)
+        normalized = {
+            cat: round(s / len(CATEGORY_KEYWORDS[cat]) * 100, 1)
+            for cat, s in scores.items()
+        }
+
         return {
             "category": best_cat,
             "confidence": round(confidence, 2),
-            "all_scores": dict(sorted(scores.items(), key=lambda x: x[1], reverse=True)[:5])
+            "all_scores": dict(sorted(normalized.items(), key=lambda x: x[1], reverse=True)[:5])
         }
     
     def analyze(self, cv_text: str) -> Dict:
