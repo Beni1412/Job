@@ -95,6 +95,7 @@ class LoginRequest(BaseModel):
 
 class ProfileUpdate(BaseModel):
     full_name: Optional[str] = None
+    title: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None

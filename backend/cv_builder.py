@@ -1,239 +1,255 @@
 """
-CV Builder — Generates a clean AWS/Amazon-style resume PDF using ReportLab
+CV Builder — Clean professional resume matching Beni_Mulyawan_Resume_paper style
 """
 import io
-from typing import List, Dict, Optional
+from typing import List, Dict
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, HRFlowable, Table, TableStyle
+    SimpleDocTemplate, Paragraph, Spacer, HRFlowable, Table, TableStyle, KeepTogether
 )
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 
-# ─── Color Palette (AWS-inspired clean style) ────────────────────────────────
-DARK_GREEN   = colors.HexColor("#013e37")
-BUTTER       = colors.HexColor("#ffefb3")
-BLACK        = colors.HexColor("#111111")
-DARK_GRAY    = colors.HexColor("#333333")
-MID_GRAY     = colors.HexColor("#555555")
-LIGHT_GRAY   = colors.HexColor("#888888")
-RULE_COLOR   = colors.HexColor("#013e37")
+# ─── Colors ──────────────────────────────────────────────────────────────────
+BLACK      = colors.HexColor("#111111")
+DARK_GRAY  = colors.HexColor("#2d2d2d")
+MID_GRAY   = colors.HexColor("#555555")
+LIGHT_GRAY = colors.HexColor("#888888")
+RULE_COLOR = colors.HexColor("#000000")
 
 PAGE_W, PAGE_H = A4
-MARGIN = 2.0 * cm
+MARGIN_LR = 1.8 * cm
+MARGIN_TB = 1.5 * cm
+
+
+def _hr(thick=0.8):
+    return HRFlowable(
+        width="100%", thickness=thick,
+        color=RULE_COLOR, spaceAfter=5, spaceBefore=0
+    )
 
 
 def build_resume_pdf(profile: dict, skills: list, experience: list, education: list) -> bytes:
     """
-    Build a professional resume PDF and return as bytes.
-    
+    Build a clean professional resume PDF matching Beni_Mulyawan_Resume_paper.pdf style.
+
     Args:
-        profile: dict with keys: full_name, email, phone, address, city, linkedin, github, about_me
-        skills: list of dicts with: skill_name, category
+        profile  : dict with keys: full_name, title, email, phone, city, linkedin, github, about_me
+        skills   : list of dicts with: skill_name, category
         experience: list of dicts with: company, title, start_date, end_date, is_current, description
         education: list of dicts with: institution, degree, field, grad_year, gpa
-    
+
     Returns:
-        PDF file as bytes
+        PDF as bytes
     """
     buf = io.BytesIO()
     doc = SimpleDocTemplate(
         buf,
         pagesize=A4,
-        leftMargin=MARGIN,
-        rightMargin=MARGIN,
-        topMargin=1.5 * cm,
-        bottomMargin=1.5 * cm,
+        leftMargin=MARGIN_LR,
+        rightMargin=MARGIN_LR,
+        topMargin=MARGIN_TB,
+        bottomMargin=MARGIN_TB,
     )
 
-    # ─── Styles ──────────────────────────────────────────────────────────────
-    styles = getSampleStyleSheet()
-
-    style_name = ParagraphStyle(
-        "Name",
-        fontSize=22,
-        fontName="Helvetica-Bold",
-        textColor=DARK_GREEN,
-        spaceAfter=2,
-        alignment=TA_LEFT,
+    # ─── Style Definitions ────────────────────────────────────────────────────
+    s_name = ParagraphStyle(
+        "Name", fontSize=20, fontName="Helvetica-Bold",
+        textColor=BLACK, spaceAfter=3, alignment=TA_LEFT, leading=24,
     )
-    style_contact = ParagraphStyle(
-        "Contact",
-        fontSize=8.5,
-        fontName="Helvetica",
-        textColor=MID_GRAY,
-        spaceAfter=1,
-        alignment=TA_LEFT,
+    s_tagline = ParagraphStyle(
+        "Tagline", fontSize=9.5, fontName="Helvetica",
+        textColor=MID_GRAY, spaceAfter=3, alignment=TA_LEFT, leading=13,
     )
-    style_section_title = ParagraphStyle(
-        "SectionTitle",
-        fontSize=10,
-        fontName="Helvetica-Bold",
-        textColor=DARK_GREEN,
-        spaceBefore=10,
-        spaceAfter=3,
-        leading=14,
-        alignment=TA_LEFT,
+    s_contact = ParagraphStyle(
+        "Contact", fontSize=8.5, fontName="Helvetica",
+        textColor=MID_GRAY, spaceAfter=5, alignment=TA_LEFT, leading=12,
     )
-    style_body = ParagraphStyle(
-        "Body",
-        fontSize=9,
-        fontName="Helvetica",
-        textColor=DARK_GRAY,
-        spaceAfter=3,
-        leading=13,
-        alignment=TA_LEFT,
+    s_section = ParagraphStyle(
+        "Section", fontSize=10, fontName="Helvetica-Bold",
+        textColor=BLACK, spaceBefore=10, spaceAfter=3, leading=13, alignment=TA_LEFT,
     )
-    style_job_title = ParagraphStyle(
-        "JobTitle",
-        fontSize=9.5,
-        fontName="Helvetica-Bold",
-        textColor=BLACK,
-        spaceAfter=1,
-        leading=13,
+    s_body = ParagraphStyle(
+        "Body", fontSize=9, fontName="Helvetica",
+        textColor=DARK_GRAY, spaceAfter=2, leading=13, alignment=TA_LEFT,
     )
-    style_company = ParagraphStyle(
-        "Company",
-        fontSize=9,
-        fontName="Helvetica-Oblique",
-        textColor=MID_GRAY,
-        spaceAfter=2,
-        leading=12,
+    s_bold_body = ParagraphStyle(
+        "BoldBody", fontSize=9, fontName="Helvetica-Bold",
+        textColor=BLACK, spaceAfter=1, leading=13,
     )
-    style_skill_tag = ParagraphStyle(
-        "SkillTag",
-        fontSize=8.5,
-        fontName="Helvetica",
-        textColor=DARK_GRAY,
-        spaceAfter=2,
+    s_italic = ParagraphStyle(
+        "Italic", fontSize=9, fontName="Helvetica-Oblique",
+        textColor=MID_GRAY, spaceAfter=2, leading=12,
+    )
+    s_date = ParagraphStyle(
+        "DateRight", fontSize=8.5, fontName="Helvetica",
+        textColor=LIGHT_GRAY, alignment=TA_RIGHT, leading=12,
+    )
+    s_bullet = ParagraphStyle(
+        "Bullet", fontSize=9, fontName="Helvetica",
+        textColor=DARK_GRAY, spaceAfter=2, leading=13,
+        leftIndent=10, firstLineIndent=0,
+    )
+    s_skill_line = ParagraphStyle(
+        "SkillLine", fontSize=9, fontName="Helvetica",
+        textColor=DARK_GRAY, spaceAfter=3, leading=13,
     )
 
-    # ─── Build Story ─────────────────────────────────────────────────────────
-    story = []
+    # ─── Helpers ──────────────────────────────────────────────────────────────
+    usable_w = PAGE_W - MARGIN_LR * 2
 
-    full_name = profile.get("full_name") or "Your Name"
+    def section_header(title: str) -> list:
+        return [
+            Spacer(1, 4),
+            Paragraph(title, s_section),
+            _hr(0.8),
+        ]
+
+    def two_col(left_para, right_para, left_w_cm=13.0):
+        right_w = usable_w - left_w_cm * cm
+        tbl = Table(
+            [[left_para, right_para]],
+            colWidths=[left_w_cm * cm, right_w],
+        )
+        tbl.setStyle(TableStyle([
+            ("VALIGN",       (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING",  (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING",   (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING",(0, 0), (-1, -1), 0),
+        ]))
+        return tbl
+
+    # ─── Profile values ───────────────────────────────────────────────────────
+    full_name = (profile.get("full_name") or "Your Name").upper()
+    title_tag = profile.get("title") or profile.get("job_title") or ""
     email     = profile.get("email", "")
     phone     = profile.get("phone", "")
     city      = profile.get("city", "")
-    address   = profile.get("address", "")
     linkedin  = profile.get("linkedin", "")
     github    = profile.get("github", "")
     about_me  = profile.get("about_me", "")
 
-    # ── Name ──
-    story.append(Paragraph(full_name, style_name))
+    def short_url(url, prefix):
+        if not url:
+            return ""
+        url = url.strip().rstrip("/")
+        for p in [f"https://www.{prefix}", f"https://{prefix}", f"http://{prefix}", prefix]:
+            if url.startswith(p):
+                url = url[len(p):]
+        url = url.lstrip("/")
+        return f"{prefix}/{url}" if url else ""
 
-    # ── Contact line ──
-    contact_parts = []
-    if email:    contact_parts.append(email)
-    if phone:    contact_parts.append(phone)
-    if city:     contact_parts.append(city)
-    if address:  contact_parts.append(address)
-    if linkedin: contact_parts.append(f"linkedin.com/in/{linkedin.replace('https://linkedin.com/in/','').replace('linkedin.com/in/','')}")
-    if github:   contact_parts.append(f"github.com/{github.replace('https://github.com/','').replace('github.com/','')}")
+    linkedin_short = short_url(linkedin, "linkedin.com/in")
+    github_short   = short_url(github,   "github.com")
 
+    # ─── Story ────────────────────────────────────────────────────────────────
+    story = []
+
+    # ── Header ────────────────────────────────────────────────────────────────
+    story.append(Paragraph(full_name, s_name))
+
+    if title_tag:
+        story.append(Paragraph(title_tag, s_tagline))
+
+    contact_parts = [p for p in [email, phone, city, github_short, linkedin_short] if p]
     if contact_parts:
-        story.append(Paragraph("  ·  ".join(contact_parts), style_contact))
+        story.append(Paragraph("  |  ".join(contact_parts), s_contact))
 
-    story.append(HRFlowable(width="100%", thickness=1.5, color=DARK_GREEN, spaceAfter=6, spaceBefore=4))
+    story.append(_hr(1.5))
 
-    # ── Professional Summary ──
+    # ── Summary ───────────────────────────────────────────────────────────────
     if about_me and about_me.strip():
-        story.append(Paragraph("PROFESSIONAL SUMMARY", style_section_title))
-        story.append(HRFlowable(width="100%", thickness=0.5, color=RULE_COLOR, spaceAfter=4))
-        story.append(Paragraph(about_me, style_body))
+        story.extend(section_header("SUMMARY"))
+        story.append(Paragraph(about_me.strip(), s_body))
 
-    # ── Skills ──
-    if skills:
-        story.append(Paragraph("SKILLS", style_section_title))
-        story.append(HRFlowable(width="100%", thickness=0.5, color=RULE_COLOR, spaceAfter=4))
-
-        # Group skills by category
-        skill_groups: Dict[str, List[str]] = {}
-        for sk in skills:
-            cat = (sk.get("category") or "Technical").title()
-            name = sk.get("skill_name", "")
-            if name:
-                skill_groups.setdefault(cat, []).append(name)
-
-        cat_order = ["Technical", "Tech", "Tools", "Tool", "Soft"]
-        sorted_cats = sorted(
-            skill_groups.keys(),
-            key=lambda c: cat_order.index(c) if c in cat_order else 99
-        )
-
-        for cat in sorted_cats:
-            names = skill_groups[cat]
-            line = f"<b>{cat}:</b>  {',  '.join(names)}"
-            story.append(Paragraph(line, style_skill_tag))
-            story.append(Spacer(1, 2))
-
-    # ── Work Experience ──
-    if experience:
-        story.append(Paragraph("WORK EXPERIENCE", style_section_title))
-        story.append(HRFlowable(width="100%", thickness=0.5, color=RULE_COLOR, spaceAfter=4))
-
-        for exp in experience:
-            title   = exp.get("title", "")
-            company = exp.get("company", "")
-            start   = exp.get("start_date", "")
-            end     = "Present" if exp.get("is_current") else exp.get("end_date", "")
-            desc    = exp.get("description", "")
-
-            date_str = f"{start} – {end}" if start else end
-
-            # Two-column: title + date
-            table_data = [[
-                Paragraph(title, style_job_title),
-                Paragraph(date_str, ParagraphStyle("DateRight", fontSize=8.5,
-                    fontName="Helvetica", textColor=LIGHT_GRAY, alignment=TA_RIGHT))
-            ]]
-            t = Table(table_data, colWidths=[12*cm, 4*cm])
-            t.setStyle(TableStyle([("VALIGN", (0,0), (-1,-1), "TOP")]))
-            story.append(t)
-            story.append(Paragraph(company, style_company))
-
-            if desc:
-                for bullet in desc.split("\n"):
-                    bullet = bullet.strip().lstrip("•-").strip()
-                    if bullet:
-                        story.append(Paragraph(f"• {bullet}", style_body))
-
-            story.append(Spacer(1, 6))
-
-    # ── Education ──
+    # ── Education ─────────────────────────────────────────────────────────────
     if education:
-        story.append(Paragraph("EDUCATION", style_section_title))
-        story.append(HRFlowable(width="100%", thickness=0.5, color=RULE_COLOR, spaceAfter=4))
-
+        story.extend(section_header("EDUCATION"))
         for edu in education:
             institution = edu.get("institution", "")
             degree      = edu.get("degree", "")
             field       = edu.get("field", "")
             grad_year   = edu.get("grad_year", "")
             gpa         = edu.get("gpa", "")
+            degree_str  = " ".join(filter(None, [degree, f"in {field}" if field else ""]))
 
-            degree_line = " ".join(filter(None, [degree, f"in {field}" if field else ""]))
-
-            table_data = [[
-                Paragraph(institution, style_job_title),
-                Paragraph(grad_year or "", ParagraphStyle("DateRight", fontSize=8.5,
-                    fontName="Helvetica", textColor=LIGHT_GRAY, alignment=TA_RIGHT))
-            ]]
-            t = Table(table_data, colWidths=[12*cm, 4*cm])
-            t.setStyle(TableStyle([("VALIGN", (0,0), (-1,-1), "TOP")]))
-            story.append(t)
-
-            if degree_line:
-                story.append(Paragraph(degree_line, style_company))
+            blk = []
+            blk.append(two_col(
+                Paragraph(institution, s_bold_body),
+                Paragraph(grad_year or "", s_date),
+            ))
+            if degree_str:
+                blk.append(Paragraph(degree_str, s_italic))
             if gpa:
-                story.append(Paragraph(f"GPA: {gpa}", style_body))
+                blk.append(Paragraph(f"GPA: {gpa}", s_body))
+            blk.append(Spacer(1, 4))
+            story.append(KeepTogether(blk))
 
-            story.append(Spacer(1, 6))
+    # ── Skills ────────────────────────────────────────────────────────────────
+    if skills:
+        story.extend(section_header("SKILLS"))
 
-    # ─── Build ───────────────────────────────────────────────────────────────
+        skill_groups: Dict[str, List[str]] = {}
+        for sk in skills:
+            cat  = (sk.get("category") or "Technical").strip()
+            name = (sk.get("skill_name") or "").strip()
+            if name:
+                skill_groups.setdefault(cat, []).append(name)
+
+        order = [
+            "Programming Languages", "Technical",
+            "Machine Learning", "AI", "Data Science",
+            "Web Development", "Framework",
+            "Databases", "Backend", "Database",
+            "Tools", "Platforms", "Cloud",
+            "Soft Skills", "Soft",
+        ]
+        def sort_key(c):
+            for i, o in enumerate(order):
+                if o.lower() in c.lower():
+                    return i
+            return 99
+
+        for cat in sorted(skill_groups.keys(), key=sort_key):
+            line = f"<b>{cat}:</b>  {', '.join(skill_groups[cat])}"
+            story.append(Paragraph(line, s_skill_line))
+
+    # ── Experience ────────────────────────────────────────────────────────────
+    if experience:
+        story.extend(section_header("EXPERIENCE"))
+
+        for exp in experience:
+            job_title = exp.get("title", "")
+            company   = exp.get("company", "")
+            start     = exp.get("start_date", "")
+            end       = "Present" if exp.get("is_current") else exp.get("end_date", "")
+            desc      = exp.get("description", "")
+
+            if start and end:
+                date_str = f"{start} \u2013 {end}"
+            elif start:
+                date_str = start
+            else:
+                date_str = end or ""
+
+            blk = []
+            left_text = f"<b>{job_title}</b>" + (f" \u2014 <i>{company}</i>" if company else "")
+            blk.append(two_col(
+                Paragraph(left_text, s_bold_body),
+                Paragraph(date_str, s_date),
+            ))
+            if desc:
+                for line in desc.split("\n"):
+                    line = line.strip().lstrip("\u2022\u25e6-\u2013").strip()
+                    if line:
+                        blk.append(Paragraph(f"\u25e6  {line}", s_bullet))
+            blk.append(Spacer(1, 5))
+            story.append(KeepTogether(blk))
+
+    # ─── Build ────────────────────────────────────────────────────────────────
     doc.build(story)
     buf.seek(0)
     return buf.read()

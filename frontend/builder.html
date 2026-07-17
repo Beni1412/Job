@@ -178,12 +178,19 @@
         <div class="form-grid" style="margin-bottom:16px;">
           <div class="form-group">
             <label class="form-label">Full Name *</label>
-            <input id="p-name" class="form-input" placeholder="John Doe" required/>
+            <input id="p-name" class="form-input" placeholder="Beni Mulyawan" required/>
           </div>
           <div class="form-group">
             <label class="form-label">Phone</label>
             <input id="p-phone" class="form-input" placeholder="+62 812 3456 7890"/>
           </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label">Professional Title / Tagline</label>
+          <input id="p-title" class="form-input" placeholder="Computer Science Student | AI & Computer Vision | Web Development"/>
+          <span style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;display:block;">Muncul di bawah nama di resume. Pisahkan dengan | (pipe)</span>
+        </div>
+        <div class="form-grid" style="margin-bottom:16px;">
           <div class="form-group">
             <label class="form-label">City</label>
             <input id="p-city" class="form-input" placeholder="Jakarta, Indonesia"/>
@@ -202,8 +209,8 @@
           </div>
         </div>
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">About Me / Professional Summary</label>
-          <textarea id="p-about" class="form-textarea" placeholder="Experienced software engineer with 3 years of expertise in building scalable web applications..." rows="5"></textarea>
+          <label class="form-label">Summary / About Me</label>
+          <textarea id="p-about" class="form-textarea" placeholder="Computer Science student at Bina Nusantara University with a focus on AI and Web Development..." rows="5"></textarea>
         </div>
         <div>
           <button class="btn-save" onclick="saveProfile()">Save Profile</button>
@@ -219,10 +226,14 @@
         </div>
         <div class="skill-input-row">
           <input id="skill-input" class="form-input" placeholder="e.g. Python, React, SQL..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSkill();}"/>
-          <select id="skill-cat" class="form-select" style="width:140px;">
-            <option value="technical">Technical</option>
-            <option value="tools">Tools</option>
-            <option value="soft">Soft Skills</option>
+          <select id="skill-cat" class="form-select" style="width:220px;">
+            <option value="Programming Languages">Programming Languages</option>
+            <option value="Machine Learning & AI">Machine Learning & AI</option>
+            <option value="Web Development">Web Development</option>
+            <option value="Databases & Backend">Databases & Backend</option>
+            <option value="Tools & Platforms">Tools & Platforms</option>
+            <option value="Data Science Methods">Data Science Methods</option>
+            <option value="Soft Skills">Soft Skills</option>
           </select>
           <button class="btn-add-skill" onclick="addSkill()">+ Add</button>
         </div>

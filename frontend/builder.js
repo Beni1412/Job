@@ -27,6 +27,7 @@ async function loadProfile() {
     const data = await res.json();
     if (data) {
       setValue('p-name', data.full_name);
+      setValue('p-title', data.title);
       setValue('p-phone', data.phone);
       setValue('p-city', data.city);
       setValue('p-address', data.address);
@@ -43,6 +44,7 @@ async function saveProfile() {
 
   const body = {
     full_name: getValue('p-name'),
+    title:     getValue('p-title'),
     phone:     getValue('p-phone'),
     city:      getValue('p-city'),
     address:   getValue('p-address'),
@@ -285,7 +287,8 @@ async function downloadCV() {
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href     = url;
-    a.download = 'resume.pdf';
+    const name = getValue('p-name').replace(/\s+/g, '_') || 'Resume';
+    a.download = `${name}_Resume.pdf`;
     a.click();
     URL.revokeObjectURL(url);
     showToast('CV downloaded!', 'success');
