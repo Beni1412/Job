@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CareerAI — CV Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/style.css"/>
+  <style>
+    .builder-nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      padding:14px 40px; display:flex; align-items:center; justify-content:space-between;
+      background:rgba(1,46,41,0.9); backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+    }
+    .builder-nav-logo { display:flex; align-items:center; gap:10px; }
+    .builder-nav-logo span { font-size:1.1rem; font-weight:900; color:var(--accent); }
+    .nav-actions { display:flex; gap:10px; align-items:center; }
+    .btn-nav {
+      padding:9px 20px; border-radius:10px; font-size:0.85rem;
+      font-weight:600; cursor:pointer; font-family:inherit; transition:var(--transition);
+    }
+    .btn-nav-outline { background:transparent; border:1px solid var(--border); color:var(--text-secondary); }
+    .btn-nav-outline:hover { border-color:var(--accent); color:var(--accent); }
+    .btn-nav-primary { background:var(--accent); border:none; color:var(--bg-base); }
+    .btn-nav-primary:hover { filter:brightness(1.1); }
+    .builder-layout {
+      display:grid; grid-template-columns:240px 1fr;
+      gap:0; min-height:100vh; padding-top:64px;
+    }
+    .builder-sidebar {
+      background:rgba(1,40,35,0.8); border-right:1px solid var(--border);
+      padding:24px 0; position:sticky; top:64px; height:calc(100vh - 64px);
+      overflow-y:auto;
+    }
+    .sidebar-section {
+      display:flex; align-items:center; gap:12px;
+      padding:12px 24px; cursor:pointer; transition:var(--transition);
+      color:var(--text-secondary); font-size:0.875rem; font-weight:500;
+      border-left:3px solid transparent;
+    }
+    .sidebar-section.active { color:var(--accent); border-left-color:var(--accent); background:rgba(255,239,179,0.05); }
+    .sidebar-section:hover { color:var(--text-primary); background:rgba(255,255,255,0.03); }
+    .sidebar-section .s-icon { font-size:1.1rem; }
+    .builder-content { padding:32px; max-width:760px; }
+    .builder-section { display:none; }
+    .builder-section.active { display:block; }
+    .section-header { margin-bottom:28px; }
+    .section-header h2 { font-size:1.4rem; font-weight:800; color:var(--text-primary); }
+    .section-header p { color:var(--text-secondary); font-size:0.875rem; margin-top:4px; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-grid.full { grid-template-columns:1fr; }
+    .form-group { margin-bottom:0; }
+    .form-label { display:block; font-size:0.75rem; font-weight:600; color:var(--text-secondary); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; }
+    .form-input, .form-textarea, .form-select {
+      width:100%; padding:11px 14px; background:rgba(0,0,0,0.3);
+      border:1px solid var(--border); border-radius:10px;
+      color:var(--text-primary); font-size:0.9rem; font-family:inherit;
+      transition:var(--transition); box-sizing:border-box;
+    }
+    .form-textarea { resize:vertical; min-height:100px; line-height:1.6; }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(255,239,179,0.08);
+    }
+    .form-input::placeholder, .form-textarea::placeholder { color:var(--text-muted); }
+    .form-select option { background:#013e37; }
+    .btn-save {
+      margin-top:20px; padding:12px 28px; background:var(--accent);
+      color:var(--bg-base); border:none; border-radius:10px;
+      font-weight:700; cursor:pointer; font-family:inherit;
+      font-size:0.9rem; transition:var(--transition);
+    }
+    .btn-save:hover { filter:brightness(1.1); }
+    .btn-save:disabled { opacity:0.5; cursor:not-allowed; }
+    .save-status {
+      display:inline-flex; align-items:center; gap:6px;
+      margin-left:12px; font-size:0.8rem; color:var(--green); opacity:0;
+      transition:opacity 0.3s;
+    }
+    .save-status.visible { opacity:1; }
+    /* Skills section */
+    .skill-input-row { display:flex; gap:10px; margin-bottom:16px; }
+    .skill-input-row .form-input { flex:1; }
+    .btn-add-skill {
+      padding:11px 18px; background:var(--accent); color:var(--bg-base);
+      border:none; border-radius:10px; font-weight:700; cursor:pointer;
+      font-size:1rem; transition:var(--transition); white-space:nowrap;
+    }
+    .btn-add-skill:hover { filter:brightness(1.1); }
+    .skills-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+    .skill-item {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 12px; background:rgba(255,239,179,0.08);
+      border:1px solid rgba(255,239,179,0.2); border-radius:8px;
+      font-size:0.85rem; color:var(--accent);
+    }
+    .skill-item button {
+      background:none; border:none; color:var(--text-muted);
+      cursor:pointer; padding:0; font-size:1rem; line-height:1;
+      transition:var(--transition);
+    }
+    .skill-item button:hover { color:#fca5a5; }
+    /* Experience/Education cards */
+    .entry-card {
+      background:rgba(0,0,0,0.2); border:1px solid var(--border);
+      border-radius:14px; padding:20px; margin-bottom:14px; position:relative;
+    }
+    .entry-card-title { font-weight:700; color:var(--text-primary); font-size:0.95rem; }
+    .entry-card-sub { color:var(--text-secondary); font-size:0.8rem; margin-top:2px; }
+    .btn-delete-entry {
+      position:absolute; top:16px; right:16px;
+      background:none; border:1px solid rgba(239,68,68,0.3);
+      color:#fca5a5; border-radius:8px; padding:4px 10px;
+      cursor:pointer; font-size:0.75rem; transition:var(--transition);
+    }
+    .btn-delete-entry:hover { background:rgba(239,68,68,0.1); }
+    .add-entry-form {
+      background:rgba(0,0,0,0.2); border:1px dashed var(--border);
+      border-radius:14px; padding:20px; margin-top:12px;
+    }
+    .add-entry-form h4 { font-size:0.875rem; font-weight:700; color:var(--text-secondary); margin-bottom:16px; text-transform:uppercase; letter-spacing:0.06em; }
+    .checkbox-row { display:flex; align-items:center; gap:8px; }
+    .checkbox-row input[type=checkbox] { accent-color:var(--accent); width:16px; height:16px; }
+    .checkbox-row label { font-size:0.875rem; color:var(--text-secondary); }
+    @media (max-width: 700px) {
+      .builder-layout { grid-template-columns:1fr; }
+      .builder-sidebar { display:none; }
+      .form-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas" style="position:fixed;top:0;left:0;z-index:0;pointer-events:none;"></canvas>
+
+  <!-- Navbar -->
+  <nav class="builder-nav">
+    <div class="builder-nav-logo">
+      <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+        <circle cx="18" cy="18" r="17" fill="#013e37" stroke="#ffefb3" stroke-width="1.5"/>
+        <path d="M10 24l5-8 4 5 3-4 4 7" stroke="#ffefb3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="26" cy="11" r="2.5" fill="#ffefb3"/>
+      </svg>
+      <span>CareerAI — CV Builder</span>
+    </div>
+    <div class="nav-actions">
+      <a href="/dashboard" style="text-decoration:none;"><button class="btn-nav btn-nav-outline">← Dashboard</button></a>
+      <button class="btn-nav btn-nav-primary" onclick="downloadCV()" id="btn-download">⬇ Download PDF</button>
+    </div>
+  </nav>
+
+  <div class="builder-layout">
+    <!-- Sidebar -->
+    <aside class="builder-sidebar">
+      <div class="sidebar-section active" onclick="showSection('personal')" id="nav-personal">
+        <span class="s-icon">👤</span> Personal Info
+      </div>
+      <div class="sidebar-section" onclick="showSection('skills')" id="nav-skills">
+        <span class="s-icon">⚡</span> Skills
+      </div>
+      <div class="sidebar-section" onclick="showSection('experience')" id="nav-experience">
+        <span class="s-icon">💼</span> Experience
+      </div>
+      <div class="sidebar-section" onclick="showSection('education')" id="nav-education">
+        <span class="s-icon">🎓</span> Education
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="builder-content" style="position:relative;z-index:1;">
+
+      <!-- PERSONAL INFO -->
+      <div class="builder-section active" id="section-personal">
+        <div class="section-header">
+          <h2>👤 Personal Information</h2>
+          <p>This will appear at the top of your resume.</p>
+        </div>
+        <div class="form-grid" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input id="p-name" class="form-input" placeholder="John Doe" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input id="p-phone" class="form-input" placeholder="+62 812 3456 7890"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">City</label>
+            <input id="p-city" class="form-input" placeholder="Jakarta, Indonesia"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Address</label>
+            <input id="p-address" class="form-input" placeholder="Street, District"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">LinkedIn</label>
+            <input id="p-linkedin" class="form-input" placeholder="linkedin.com/in/yourname"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">GitHub</label>
+            <input id="p-github" class="form-input" placeholder="github.com/yourname"/>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">About Me / Professional Summary</label>
+          <textarea id="p-about" class="form-textarea" placeholder="Experienced software engineer with 3 years of expertise in building scalable web applications..." rows="5"></textarea>
+        </div>
+        <div>
+          <button class="btn-save" onclick="saveProfile()">Save Profile</button>
+          <span class="save-status" id="profile-saved-msg">✓ Saved!</span>
+        </div>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="builder-section" id="section-skills">
+        <div class="section-header">
+          <h2>⚡ Skills</h2>
+          <p>Add your technical and professional skills. They'll be saved and reused automatically.</p>
+        </div>
+        <div class="skill-input-row">
+          <input id="skill-input" class="form-input" placeholder="e.g. Python, React, SQL..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSkill();}"/>
+          <select id="skill-cat" class="form-select" style="width:140px;">
+            <option value="technical">Technical</option>
+            <option value="tools">Tools</option>
+            <option value="soft">Soft Skills</option>
+          </select>
+          <button class="btn-add-skill" onclick="addSkill()">+ Add</button>
+        </div>
+        <div class="skills-list" id="skills-list">
+          <span style="color:var(--text-muted);font-size:0.85rem;">No skills yet. Add your first skill above!</span>
+        </div>
+      </div>
+
+      <!-- EXPERIENCE -->
+      <div class="builder-section" id="section-experience">
+        <div class="section-header">
+          <h2>💼 Work Experience</h2>
+          <p>Add your work history. Newest first.</p>
+        </div>
+        <div id="experience-list"></div>
+        <div class="add-entry-form">
+          <h4>Add New Experience</h4>
+          <div class="form-grid" style="margin-bottom:16px;">
+            <div class="form-group">
+              <label class="form-label">Job Title *</label>
+              <input id="exp-title" class="form-input" placeholder="Software Engineer"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Company *</label>
+              <input id="exp-company" class="form-input" placeholder="Google"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Start Date</label>
+              <input id="exp-start" class="form-input" placeholder="Jan 2022"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">End Date</label>
+              <input id="exp-end" class="form-input" placeholder="Dec 2023" id="exp-end-input"/>
+            </div>
+          </div>
+          <div class="checkbox-row" style="margin-bottom:16px;">
+            <input type="checkbox" id="exp-current" onchange="toggleCurrent()"/>
+            <label for="exp-current">I currently work here</label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description / Achievements</label>
+            <textarea id="exp-desc" class="form-textarea" placeholder="• Built REST APIs serving 1M+ requests/day&#10;• Reduced deployment time by 40% using CI/CD" rows="4"></textarea>
+          </div>
+          <button class="btn-save" onclick="addExperience()">+ Add Experience</button>
+        </div>
+      </div>
+
+      <!-- EDUCATION -->
+      <div class="builder-section" id="section-education">
+        <div class="section-header">
+          <h2>🎓 Education</h2>
+          <p>Add your educational background.</p>
+        </div>
+        <div id="education-list"></div>
+        <div class="add-entry-form">
+          <h4>Add Education</h4>
+          <div class="form-grid" style="margin-bottom:16px;">
+            <div class="form-group">
+              <label class="form-label">Institution *</label>
+              <input id="edu-institution" class="form-input" placeholder="Universitas Indonesia"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Degree</label>
+              <input id="edu-degree" class="form-input" placeholder="Bachelor of Science"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Field of Study</label>
+              <input id="edu-field" class="form-input" placeholder="Computer Science"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Graduation Year</label>
+              <input id="edu-year" class="form-input" placeholder="2023"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">GPA (optional)</label>
+              <input id="edu-gpa" class="form-input" placeholder="3.85 / 4.00"/>
+            </div>
+          </div>
+          <button class="btn-save" onclick="addEducation()">+ Add Education</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/app.js"></script>
+  <script src="/builder.js"></script>
+</body>
+</html>

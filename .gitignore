@@ -1,0 +1,23 @@
+# Environment variables — JANGAN di-upload ke GitHub!
+.env
+backend/.env
+*.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Dataset mentah (terlalu besar)
+datasets/
+
+# OS files
+.DS_Store
+Thumbs.db
